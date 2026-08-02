@@ -22,7 +22,7 @@ Two possible data sources, both unconfirmed from this environment:
 
 - **ArcGIS REST query endpoint** (`giswebnew.dotd.la.gov/.../SONRIS/MapServer/0/query`)
   - fast, but per its own service metadata it's a stale snapshot (~April 2018).
-- **DNR bulk download portal** (`sonris-gis.dnr.state.la.us`)
+- **DNR SONRIS document access portal / "SONLITE"** (`sonlite.dnr.state.la.us/ords/r/sonris_pub/document_access/home`)
   - the current, daily-updated source, but reportedly sits behind some kind
     of login/terms gate of unknown strictness.
 

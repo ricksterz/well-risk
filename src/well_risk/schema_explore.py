@@ -13,12 +13,19 @@ prototype:
 1. ArcGIS REST query endpoint (LTRC/SONRIS MapServer) - fast, but per its own
    service metadata this is a stale snapshot (~April 2018). Useful for a
    first look at field naming conventions, not for production data.
-2. DNR's bulk download portal (sonris-gis.dnr.state.la.us) - the current,
-   daily-updated source, reportedly behind some kind of login/terms gate of
-   unknown strictness. `check_dnr_bulk_portal_gate()` fetches the login page
-   and reports what it actually contains (a real credentials form vs. a
-   click-through terms page vs. something unclear) instead of assuming
-   either. It does not submit the form or attempt to authenticate.
+2. DNR's SONRIS document access portal (sonlite.dnr.state.la.us, an Oracle
+   APEX/ORDS app - "SONLITE") - the current, daily-updated source, reportedly
+   behind some kind of login/terms gate of unknown strictness.
+   `check_dnr_bulk_portal_gate()` fetches the page and reports what it
+   actually contains (a real credentials form vs. a click-through terms page
+   vs. something unclear) instead of assuming either. It does not submit the
+   form or attempt to authenticate.
+
+   Note: an earlier version of this script pointed at
+   sonris-gis.dnr.state.la.us/website/DownloadLogin.html, which turned out to
+   be the wrong domain - it returned a Cloudflare 530 (origin unreachable)
+   from a GitHub Actions runner. sonlite.dnr.state.la.us is the confirmed
+   correct portal.
 """
 
 from __future__ import annotations
@@ -31,7 +38,7 @@ from dataclasses import dataclass
 import requests
 
 ARCGIS_QUERY_URL = "https://giswebnew.dotd.la.gov/arcgis/rest/services/LTRC/SONRIS/MapServer/0/query"
-DNR_BULK_LOGIN_URL = "https://sonris-gis.dnr.state.la.us/website/DownloadLogin.html"
+DNR_BULK_LOGIN_URL = "https://sonlite.dnr.state.la.us/ords/r/sonris_pub/document_access/home"
 
 # Rough bbox covering Jefferson / Plaquemines / Lafourche parishes (Barataria
 # Basin core). Only used to keep exploratory queries small - not a claim
