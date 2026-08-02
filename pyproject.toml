@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "well-risk"
+version = "0.1.0"
+description = "Louisiana SONRIS oil & gas well risk classification, joined to a lat/lon grid for use with FloodLens."
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+well-risk-schema-explore = "well_risk.schema_explore:main"
