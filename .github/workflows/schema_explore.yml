@@ -1,0 +1,50 @@
+name: Schema Explore
+
+# Manually triggered only. GitHub-hosted runners have real internet access
+# (unlike the sandbox this was developed in, which can't reach Louisiana
+# state domains), so this dispatches schema_explore.py against the live
+# ArcGIS SONRIS endpoint and DNR bulk portal and prints the result to the
+# job log for a human to confirm real field names from.
+on:
+  workflow_dispatch:
+    inputs:
+      sample_size:
+        description: "Number of ArcGIS sample records to request"
+        required: false
+        default: "5"
+      skip_arcgis:
+        description: "Skip the ArcGIS schema query"
+        type: boolean
+        required: false
+        default: false
+      skip_dnr_gate:
+        description: "Skip the DNR bulk portal gate check"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -e ".[dev]"
+
+      - name: Run schema_explore
+        run: |
+          args=(--sample-size "${{ inputs.sample_size }}")
+          if [ "${{ inputs.skip_arcgis }}" = "true" ]; then
+            args+=(--skip-arcgis)
+          fi
+          if [ "${{ inputs.skip_dnr_gate }}" = "true" ]; then
+            args+=(--skip-dnr-gate)
+          fi
+          well-risk-schema-explore "${args[@]}"
