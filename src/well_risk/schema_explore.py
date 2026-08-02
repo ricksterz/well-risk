@@ -7,18 +7,20 @@ actually return - field names, types, and a sample record - so a human can
 confirm them before `classify.py` or `grid_join.py` are built on top of
 guesses.
 
-Two sources are probed, per the two options identified in the original
-prototype:
+Two sources are probed:
 
-1. ArcGIS REST query endpoint (LTRC/SONRIS MapServer) - fast, but per its own
-   service metadata this is a stale snapshot (~April 2018). Useful for a
-   first look at field naming conventions, not for production data.
-2. DNR's bulk download portal (sonris-gis.dnr.state.la.us) - the current,
-   daily-updated source, reportedly behind some kind of login/terms gate of
-   unknown strictness. `check_dnr_bulk_portal_gate()` fetches the login page
-   and reports what it actually contains (a real credentials form vs. a
-   click-through terms page vs. something unclear) instead of assuming
-   either. It does not submit the form or attempt to authenticate.
+1. ArcGIS REST query endpoint - DNRSvc/OC MapServer layer 0 ("Oil/Gas Wells")
+   on sonris-gis.dnr.la.gov, the live Office of Conservation GIS service.
+   Confirmed reachable and returning real records as of 2026-08-02; an
+   earlier prototype pointed at giswebnew.dotd.la.gov/.../LTRC/SONRIS, which
+   is now unreachable.
+2. DNR's Data Subscription Service (sonlite.dnr.state.la.us/DataSubscription/)
+   - the current bulk-download portal, gated behind a real login form.
+   `check_dnr_bulk_portal_gate()` fetches the login page and reports what it
+   actually contains (a real credentials form vs. a click-through terms page
+   vs. something unclear) instead of assuming either. It does not submit the
+   form or attempt to authenticate. An earlier prototype pointed at
+   sonris-gis.dnr.state.la.us/website/DownloadLogin.html, which is now dead.
 """
 
 from __future__ import annotations
@@ -30,8 +32,8 @@ from dataclasses import dataclass
 
 import requests
 
-ARCGIS_QUERY_URL = "https://giswebnew.dotd.la.gov/arcgis/rest/services/LTRC/SONRIS/MapServer/0/query"
-DNR_BULK_LOGIN_URL = "https://sonris-gis.dnr.state.la.us/website/DownloadLogin.html"
+ARCGIS_QUERY_URL = "https://sonris-gis.dnr.la.gov/arcgis/rest/services/DNRSvc/OC/MapServer/0/query"
+DNR_BULK_LOGIN_URL = "https://sonlite.dnr.state.la.us/DataSubscription/"
 
 # Rough bbox covering Jefferson / Plaquemines / Lafourche parishes (Barataria
 # Basin core). Only used to keep exploratory queries small - not a claim
