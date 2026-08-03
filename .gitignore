@@ -15,3 +15,7 @@ data/raw/
 data/processed/
 *.csv
 !tests/**/*.csv
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
