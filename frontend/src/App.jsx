@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchParishes, fetchSummary, fetchWells } from "./api.js";
 import FilterBar from "./components/FilterBar.jsx";
 import MetricCards from "./components/MetricCards.jsx";
-import MapPlaceholder from "./components/MapPlaceholder.jsx";
+import MapView from "./components/MapView.jsx";
 import RiskList from "./components/RiskList.jsx";
 
 export default function App() {
@@ -44,7 +44,7 @@ export default function App() {
       <MetricCards summary={summary} />
 
       <div className="main-grid">
-        <MapPlaceholder wells={filteredWells} />
+        <MapView wells={filteredWells} />
         <RiskList wells={filteredWells} />
       </div>
     </div>
