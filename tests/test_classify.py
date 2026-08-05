@@ -30,11 +30,37 @@ BASE = WellRecord(
 )
 
 
-def test_orphaned_flag_wins_regardless_of_legend():
-    well = replace(BASE, orphaned_flag="Y", legend_desc="ACTIVE - PRODUCING OIL")
+def test_orphaned_flag_escalates_unresolved_legend_to_critical():
+    # e.g. LEGEND_DESC still says "ACT 404 ORPHAN WELL-ENG" - genuinely unresolved.
+    well = replace(BASE, orphaned_flag="Y", legend_desc="ACT 404 ORPHAN WELL-ENG OIL")
     result = classify_well(well)
     assert result.risk_tier == RiskTier.CRITICAL
     assert "ORPHANED_FLAG=Y" in result.risk_reason
+
+
+def test_orphaned_flag_does_not_override_already_plugged_well():
+    # Confirmed live 2026-08-04: ~6.5k of 15k ORPHANED_FLAG=Y wells statewide
+    # are already PLUGGED AND ABANDONED. The flag is historical, not current risk.
+    well = replace(BASE, orphaned_flag="Y", legend_desc="PLUGGED AND ABANDONED OIL")
+    result = classify_well(well)
+    assert result.risk_tier == RiskTier.LOW
+    assert "ORPHANED_FLAG=Y" in result.risk_reason
+    assert "resolved" in result.risk_reason
+
+
+def test_orphaned_flag_does_not_override_currently_active_well():
+    # Confirmed live 2026-08-04: ~700 ORPHANED_FLAG=Y wells statewide are
+    # currently ACTIVE - PRODUCING. DNR doesn't clear the flag on recovery.
+    well = replace(BASE, orphaned_flag="Y", legend_desc="ACTIVE - PRODUCING OIL")
+    result = classify_well(well)
+    assert result.risk_tier == RiskTier.ACTIVE
+    assert "ORPHANED_FLAG=Y" in result.risk_reason
+
+
+def test_orphaned_flag_with_ambiguous_legend_still_escalates():
+    well = replace(BASE, orphaned_flag="Y", legend_desc="WATER OIL")
+    result = classify_well(well)
+    assert result.risk_tier == RiskTier.CRITICAL
 
 
 def test_unable_to_locate_is_critical():
@@ -59,6 +85,13 @@ def test_shut_in_waiting_on_market_is_medium():
 
 def test_plugged_and_abandoned_is_low():
     well = replace(BASE, legend_desc="PLUGGED AND ABANDONED OIL")
+    assert classify_well(well).risk_tier == RiskTier.LOW
+
+
+def test_pa_per_inspection_abbreviation_is_low():
+    # Real LEGEND_DESC text (53 wells statewide as of 2026-08-04) uses this
+    # abbreviation, not the renderer legend's "PLUGGED/ABNDED PER INSPECTION".
+    well = replace(BASE, legend_desc="P&A PER INSPECTION OIL")
     assert classify_well(well).risk_tier == RiskTier.LOW
 
 

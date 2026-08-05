@@ -3,6 +3,7 @@ from dataclasses import replace
 from well_risk.classify import classify_well
 from well_risk.grid_join import (
     FULL_SERVICE_BOUNDS,
+    WELL_RISK_STUDY_BOUNDS,
     join_well_to_grid,
     snap_to_grid,
 )
@@ -56,14 +57,38 @@ def test_join_well_to_grid_jefferson_well_is_in_coverage():
     assert joined.grid_lng is not None
 
 
-def test_join_well_to_grid_lafourche_well_is_out_of_coverage():
+def test_join_well_to_grid_lafourche_well_gets_study_cell_but_no_floodlens_data():
+    # Outside FloodLens's FULL_SERVICE_BOUNDS but inside well-risk's own
+    # WELL_RISK_STUDY_BOUNDS - should still get a grid cell for the app's
+    # own map, just flagged as not backed by real FloodLens subsidence data.
     well = replace(BASE, surface_lat_dec_deg=29.35, surface_long_dec_deg=-90.4)
     joined = join_well_to_grid(classify_well(well))
     assert joined.in_floodlens_coverage is False
+    assert joined.grid_lat is not None
+    assert joined.grid_lng is not None
+
+
+def test_join_well_to_grid_outside_study_area_entirely_is_none():
+    # Nowhere near any of the three target parishes.
+    well = replace(BASE, surface_lat_dec_deg=32.5, surface_long_dec_deg=-92.1)
+    joined = join_well_to_grid(classify_well(well))
+    assert joined.in_floodlens_coverage is False
     assert joined.grid_lat is None
+    assert joined.grid_lng is None
 
 
 def test_join_well_to_grid_missing_coords_is_out_of_coverage():
     well = replace(BASE, surface_lat_dec_deg=None, surface_long_dec_deg=None)
     joined = join_well_to_grid(classify_well(well))
     assert joined.in_floodlens_coverage is False
+
+
+def test_well_risk_study_bounds_cover_known_plaquemines_and_lafourche_points():
+    # Venice, LA (southern Plaquemines) and Port Fourchon (southern
+    # Lafourche) - both must fall inside the study bounds for the gap-fix
+    # above to actually help the two parishes it's meant for.
+    venice = (29.28, -89.36)
+    port_fourchon = (29.11, -90.20)
+    for lat, lng in (venice, port_fourchon):
+        assert WELL_RISK_STUDY_BOUNDS["lat_min"] <= lat <= WELL_RISK_STUDY_BOUNDS["lat_max"]
+        assert WELL_RISK_STUDY_BOUNDS["lng_min"] <= lng <= WELL_RISK_STUDY_BOUNDS["lng_max"]
