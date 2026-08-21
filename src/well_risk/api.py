@@ -7,6 +7,12 @@ job, API reads the result" model noted as an open question in the spec.
 Reload the process (or wire up a scheduled restart) after rebuilding the
 dataset; there's no file-watching/hot-reload of the data here.
 
+In production (see Dockerfile) this process also serves the built frontend
+(frontend/dist) as static files, same-origin - matching how FloodLens's
+single Flask service works. Locally, run the Vite dev server separately
+instead (frontend/dist won't exist until `npm run build`); the static
+mount below is skipped when that directory is missing.
+
 Run: uvicorn well_risk.api:app --reload
 """
 
@@ -19,10 +25,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from well_risk.models import RiskTier
 
 DATASET_PATH = Path(os.environ.get("WELL_RISK_DATASET_PATH", "data/processed/wells.json"))
+FRONTEND_DIST = Path(os.environ.get("WELL_RISK_FRONTEND_DIST", "frontend/dist"))
 MAP_POINTS_CAP = 5000
 
 _wells: list[dict] = []
@@ -177,3 +186,18 @@ def parishes():
         if name:
             counts[name] = counts.get(name, 0) + 1
     return {"parishes": [{"parish_name": name, "well_count": cnt} for name, cnt in sorted(counts.items())]}
+
+
+# Registered last so it never shadows the /api/* routes above - Starlette
+# matches in declaration order, same reasoning as the /api/wells/map fix.
+if FRONTEND_DIST.is_dir():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="frontend-assets")
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        # SPA with no client-side routing today - every non-API, non-asset
+        # path just gets index.html.
+        candidate = FRONTEND_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")

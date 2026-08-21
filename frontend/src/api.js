@@ -1,9 +1,11 @@
-// Talks to the API in docs/api_spec.md, which isn't built yet - every
-// function falls back to MOCK data on fetch failure so this scaffold is
-// demoable before a backend exists. Swap the fallback for a thrown error
-// once /api is real.
+// Talks to the real API in src/well_risk/api.py (docs/api_spec.md is its
+// spec). Defaults to same-origin ("") since in production this frontend is
+// served by that same FastAPI process (see Dockerfile) - set
+// VITE_API_BASE_URL only for local dev, where the Vite dev server and
+// uvicorn run on different ports. Falls back to MOCK data on fetch failure
+// so the UI still renders if the backend is down or mid-deploy.
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 const MOCK_SUMMARY = {
   wells_in_scope: 8400,
