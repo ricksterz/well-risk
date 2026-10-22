@@ -180,3 +180,12 @@ select {
 
 .map-popup-name { font-size: 13px; font-weight: 500; margin: 0; }
 .map-popup-parish { font-size: 12px; color: var(--text-secondary); margin: 2px 0 6px; }
+
+.disclaimers { margin-top: 2rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border); color: var(--text-secondary); }
+.disclaimers h2 { font-size: 15px; font-weight: 500; color: var(--text-primary); margin: 0 0 6px; }
+.disclaimers-intro { font-size: 12px; line-height: 1.6; margin: 0 0 16px; }
+.disclaimers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px 24px; }
+.disclaimers h3 { font-size: 12px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
+.disclaimers p { font-size: 12px; line-height: 1.6; margin: 0 0 6px; }
+
+.error-banner { font-size: 13px; padding: 10px 12px; border-radius: var(--radius); background: var(--danger-bg); color: var(--danger-text); }
